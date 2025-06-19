@@ -1,0 +1,109 @@
+@startuml
+' Set layout
+skinparam packageStyle rectangle
+left to right direction
+
+' ========= Models =========
+package "Model" {
+    class User
+    class Ad
+    class Category
+    enum Role
+
+    User : String id
+    User : String fullName
+    User : String email
+    User : String password
+    User : Role role
+    User : String phoneNumber
+    User : String location
+    User : LocalDateTime createdAt
+
+    Ad : String id
+    Ad : String title
+    Ad : String description
+    Ad : String imageUrl
+    Ad : double price
+    Ad : String location
+    Ad : String categoryId
+    Ad : String postedByUserId
+    Ad : boolean isActive
+    Ad : LocalDateTime postedAt
+
+    Category : String id
+    Category : String name
+    Category : String description
+}
+
+' ========= DTOs =========
+package "DTOs" {
+    class RegisterRequestDTO
+    class LoginRequestDTO
+    class JwtResponseDTO
+    class CreateAdRequestDTO
+    class AdResponseDTO
+    class CreateCategoryRequestDTO
+
+    JwtResponseDTO : String token
+    JwtResponseDTO : String email
+    JwtResponseDTO : String role
+}
+
+' ========= Repositories =========
+package "Repository" {
+    interface UserRepository
+    interface AdRepository
+    interface CategoryRepository
+}
+
+UserRepository --> User
+AdRepository --> Ad
+CategoryRepository --> Category
+
+' ========= Services =========
+package "Service" {
+    interface UserService
+    class UserServiceImpl
+    interface AdService
+    class AdServiceImpl
+    interface CategoryService
+    class CategoryServiceImpl
+}
+
+UserService <|-- UserServiceImpl
+AdService <|-- AdServiceImpl
+CategoryService <|-- CategoryServiceImpl
+
+UserServiceImpl --> UserRepository
+AdServiceImpl --> AdRepository
+CategoryServiceImpl --> CategoryRepository
+
+' ========= Controllers =========
+package "Controller" {
+    class AuthController
+    class UserController
+    class AdController
+    class CategoryController
+}
+
+AuthController --> UserService
+UserController --> UserService
+AdController --> AdService
+CategoryController --> CategoryService
+
+' ========= Security =========
+package "Security" {
+    class JwtTokenProvider
+    class JwtAuthenticationFilter
+    class CustomUserDetailsService
+    class SecurityConfig
+}
+
+JwtAuthenticationFilter --> JwtTokenProvider
+SecurityConfig --> JwtAuthenticationFilter
+CustomUserDetailsService --> UserRepository
+
+' ========= Relationships =========
+User "1" -- "0..*" Ad : posts >
+Category "1" -- "0..*" Ad : contains >
+@enduml

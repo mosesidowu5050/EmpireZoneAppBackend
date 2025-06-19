@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+actor Buyer
+actor Seller
+actor Admin
+
+rectangle "Classified Ads System" {
+    Seller --> (Register)
+    Seller --> (Login [JWT])
+    Buyer --> (Login [JWT])
+
+    Buyer --> (Browse Ads)
+    Buyer --> (Search Ads)
+    Buyer --> (View Ad Details)
+    Buyer --> (Contact Seller)
+
+    Seller --> (Post Ad)
+    Seller --> (Update Ad)
+    Seller --> (Delete Ad)
+    Seller --> (View Own Ads)
+
+    Admin --> (Login [JWT])
+    Admin --> (Manage Categories)
+    Admin --> (View All Users)
+    Admin --> (Delete Ads)
+    Admin --> (Block Users)
+}
+@enduml

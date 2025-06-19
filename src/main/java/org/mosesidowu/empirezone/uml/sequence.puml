@@ -1,0 +1,35 @@
+@startuml
+actor User
+
+participant "AuthController" as Auth
+participant "UserService" as UserSvc
+participant "JwtTokenProvider" as JWT
+participant "AdController" as AdCtrl
+participant "JwtAuthenticationFilter" as Filter
+participant "AdService" as AdSvc
+participant "AdRepository" as AdRepo
+
+== Login Flow ==
+User -> Auth : POST /api/auth/login\n(email, password)
+Auth -> UserSvc : validateLogin()
+UserSvc -> UserSvc : load user by email\n& validate password
+UserSvc --> Auth : User object
+Auth -> JWT : generateToken(user)
+JWT --> Auth : JWT token
+Auth --> User : 200 OK + JWT
+
+== Post Ad Flow ==
+User -> AdCtrl : POST /api/ads\n(Authorization: Bearer token)
+AdCtrl -> Filter : intercept request\n+ validate token
+Filter -> JWT : validateToken(token)
+JWT -> UserSvc : loadUserByUsername()
+UserSvc --> JWT : UserDetails
+JWT --> Filter : authentication passed
+Filter --> AdCtrl : continue request
+
+AdCtrl -> AdSvc : createAd(adDto, userId)
+AdSvc -> AdRepo : save(ad)
+AdRepo --> AdSvc : saved Ad
+AdSvc --> AdCtrl : AdResponse
+AdCtrl --> User : 201 Created + Ad info
+@enduml
