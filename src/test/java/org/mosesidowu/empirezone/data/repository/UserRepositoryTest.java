@@ -5,14 +5,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mosesidowu.empirezone.data.models.Role;
 import org.mosesidowu.empirezone.data.models.User;
-import org.mosesidowu.empirezone.dtos.requests.LoginUserRequestDTO;
-import org.mosesidowu.empirezone.dtos.requests.RegisterUserRequestDTO;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.Optional;
 

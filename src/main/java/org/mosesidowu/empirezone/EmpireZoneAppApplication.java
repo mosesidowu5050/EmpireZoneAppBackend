@@ -9,5 +9,4 @@ public class EmpireZoneAppApplication {
     public static void main(String[] args) {
         SpringApplication.run(EmpireZoneAppApplication.class, args);
     }
-
 }
