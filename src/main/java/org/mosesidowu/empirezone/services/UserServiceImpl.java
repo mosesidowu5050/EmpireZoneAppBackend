@@ -13,6 +13,7 @@ import org.mosesidowu.empirezone.exception.EmailExistException;
 import org.mosesidowu.empirezone.exception.PhoneNumberExistException;
 import org.mosesidowu.empirezone.exception.UserException;
 import org.mosesidowu.empirezone.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,6 +34,8 @@ public class UserServiceImpl implements  UserService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    @Autowired
+    private EmailServiceImpl emailService;
 
     @Override
     public RegisterUserResponseDTO register(RegisterUserRequestDTO userRegisterRequest) {
@@ -40,6 +43,12 @@ public class UserServiceImpl implements  UserService {
         User user = getUser(userRegisterRequest);
         user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
         User savedUser = userRepository.save(user);
+
+        emailService.sendEmail(
+                user.getEmail(),
+                "Welcome to EmpireAds!",
+                "Thank you for registering. We're excited to have you on board!"
+        );
 
         return getRegisterUserResponseDTO(savedUser);
     }
@@ -76,8 +85,18 @@ public class UserServiceImpl implements  UserService {
         if (phoneNumberExist.isPresent()) throw new PhoneNumberExistException("Phone number already exist");
     }
 
+
+
     @Override
     public RegisterUserResponseDTO getUserById(String userId) {
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, null));
+            User user = userRepository.findUserByEmail(userId);
+            if (user == null) throw  new UsernameNotFoundException("Invalid email or password");
+            String token = jwtUtil.generateToken(user.getEmail());
+
+        }
         return null;
     }
 

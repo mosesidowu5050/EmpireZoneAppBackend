@@ -15,14 +15,21 @@ public class Mapper {
     public static User getUser(RegisterUserRequestDTO userRegisterRequest) {
         validateRegisterUserRequest(userRegisterRequest);
         String validateUserFullName = validateUserFullName(userRegisterRequest.getFullName());
+        String phone = userRegisterRequest.getPhoneNumber();
+        String location = userRegisterRequest.getCountry();
+
+        String countryCode = CountryMapper.toCountryCode(location);
+        if (countryCode == null) throw new UserException("Unsupported country input");
+
+        String validatedPhone = PhoneNumberValidator.validatePhone(phone, countryCode);
 
         User user = new User();
         user.setFullName(validateUserFullName);
         user.setEmail(userRegisterRequest.getEmail());
-//        user.setPassword(userRegisterRequest.getPassword());
-        user.setPhoneNumber(userRegisterRequest.getPhoneNumber());
+        user.setPhoneNumber(validatedPhone);
         user.setRole(userRegisterRequest.getRole());
-        user.setLocation(userRegisterRequest.getLocation());
+        user.setCountry(userRegisterRequest.getCountry());
+        user.setCity(userRegisterRequest.getCity());
 
         return user;
     }
@@ -36,7 +43,7 @@ public class Mapper {
         registerUserResponseDTO.setFullName(capitalizeName(savedUser.getFullName()));
         registerUserResponseDTO.setEmail(savedUser.getEmail());
         registerUserResponseDTO.setPhoneNumber(savedUser.getPhoneNumber());
-        registerUserResponseDTO.setLocation(savedUser.getLocation());
+        registerUserResponseDTO.setLocation(savedUser.getCountry());
         registerUserResponseDTO.setCreatedAt(savedUser.getCreatedAt() );
         registerUserResponseDTO.setRole(savedUser.getRole().name().toLowerCase());
         registerUserResponseDTO.setMessage("Registered Successfully");
@@ -54,7 +61,7 @@ public class Mapper {
     private static void validateRegisterUserRequest(RegisterUserRequestDTO registerUserRequestDTO){
         validateEmailPattern(registerUserRequestDTO.getEmail());
         validateUserPhoneNumber(registerUserRequestDTO.getPhoneNumber());
-        validateUserLocation(registerUserRequestDTO.getLocation());
+        validateUserLocation(registerUserRequestDTO.getCountry());
         validateUserRole(registerUserRequestDTO.getRole().name().toLowerCase());
     }
 
@@ -97,5 +104,4 @@ public class Mapper {
         boolean isNotValidRole = role == null || role.isEmpty();
         if (isNotValidRole) throw new UserException("Role is null or empty");
     }
-
 }
