@@ -7,6 +7,8 @@ import org.mosesidowu.empirezone.dtos.responses.RegisterUserResponseDTO;
 import org.mosesidowu.empirezone.exception.UserException;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Mapper {
 
@@ -17,7 +19,7 @@ public class Mapper {
         User user = new User();
         user.setFullName(validateUserFullName);
         user.setEmail(userRegisterRequest.getEmail());
-        user.setPassword(userRegisterRequest.getPassword());
+//        user.setPassword(userRegisterRequest.getPassword());
         user.setPhoneNumber(userRegisterRequest.getPhoneNumber());
         user.setRole(userRegisterRequest.getRole());
         user.setLocation(userRegisterRequest.getLocation());
@@ -31,7 +33,7 @@ public class Mapper {
 
         RegisterUserResponseDTO registerUserResponseDTO = new RegisterUserResponseDTO();
         registerUserResponseDTO.setUserId(savedUser.getId());
-        registerUserResponseDTO.setFullName(savedUser.getFullName().toUpperCase());
+        registerUserResponseDTO.setFullName(capitalizeName(savedUser.getFullName()));
         registerUserResponseDTO.setEmail(savedUser.getEmail());
         registerUserResponseDTO.setPhoneNumber(savedUser.getPhoneNumber());
         registerUserResponseDTO.setLocation(savedUser.getLocation());
@@ -41,6 +43,13 @@ public class Mapper {
 
         return registerUserResponseDTO;
     }
+
+    private static String capitalizeName(String name) {
+        return Arrays.stream(name.split(" "))
+                .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+                .collect(Collectors.joining(" "));
+    }
+
 
     private static void validateRegisterUserRequest(RegisterUserRequestDTO registerUserRequestDTO){
         validateEmailPattern(registerUserRequestDTO.getEmail());

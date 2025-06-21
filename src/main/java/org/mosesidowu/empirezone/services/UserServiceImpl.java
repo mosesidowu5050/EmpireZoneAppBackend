@@ -8,8 +8,16 @@ import org.mosesidowu.empirezone.dtos.requests.RegisterUserRequestDTO;
 import org.mosesidowu.empirezone.dtos.requests.UpdateUserRequestDTO;
 import org.mosesidowu.empirezone.dtos.responses.LoginUserResponseDTO;
 import org.mosesidowu.empirezone.dtos.responses.RegisterUserResponseDTO;
+import org.mosesidowu.empirezone.exception.EmailDoesntExistException;
 import org.mosesidowu.empirezone.exception.EmailExistException;
 import org.mosesidowu.empirezone.exception.PhoneNumberExistException;
+import org.mosesidowu.empirezone.exception.UserException;
+import org.mosesidowu.empirezone.security.JwtUtil;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,11 +30,15 @@ import static org.mosesidowu.empirezone.utils.Mapper.*;
 public class UserServiceImpl implements  UserService {
 
     private final UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Override
     public RegisterUserResponseDTO register(RegisterUserRequestDTO userRegisterRequest) {
         isEmailAndPhoneNumberExist(userRegisterRequest.getEmail(), userRegisterRequest.getPhoneNumber());
         User user = getUser(userRegisterRequest);
+        user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
         User savedUser = userRepository.save(user);
 
         return getRegisterUserResponseDTO(savedUser);
@@ -35,15 +47,26 @@ public class UserServiceImpl implements  UserService {
 
     @Override
     public LoginUserResponseDTO login(LoginUserRequestDTO userLoginRequest) {
-        Optional<User> confirmEmail = userRepository.findUsersByEmail(userLoginRequest.getEmail());
-        Optional<User> confirmPassword = userRepository.findUsersByPassword(userLoginRequest.getPassword());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(userLoginRequest.getEmail(), userLoginRequest.getPassword())
+            );
 
-        if (confirmEmail.isPresent() && confirmPassword.isPresent()) {
+            User user = userRepository.findUserByEmail(userLoginRequest.getEmail());
+            if (user == null) throw  new EmailDoesntExistException("Invalid email or password");
+
+            String token = jwtUtil.generateToken(user.getEmail());
             LoginUserResponseDTO loginUserResponseDTO = new LoginUserResponseDTO();
+            loginUserResponseDTO.setUserId(user.getId());
+            loginUserResponseDTO.setToken(token);
+            loginUserResponseDTO.setMessage("Login Successful");
 
+            return loginUserResponseDTO;
+        }
+        catch (BadCredentialsException ex) {
+            throw new UserException("Invalid email or password");
         }
 
-        return null;
     }
 
     private void isEmailAndPhoneNumberExist(String email, String phoneNumber) {
