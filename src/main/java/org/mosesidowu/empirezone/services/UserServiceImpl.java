@@ -89,14 +89,14 @@ public class UserServiceImpl implements  UserService {
 
     @Override
     public RegisterUserResponseDTO getUserById(String userId) {
-
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, null));
-            User user = userRepository.findUserByEmail(userId);
-            if (user == null) throw  new UsernameNotFoundException("Invalid email or password");
-            String token = jwtUtil.generateToken(user.getEmail());
-
-        }
+//
+//        try {
+//            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, null));
+//            User user = userRepository.findUserByEmail(userId);
+//            if (user == null) throw  new UsernameNotFoundException("Invalid email or password");
+//            String token = jwtUtil.generateToken(user.getEmail());
+//
+//        }
         return null;
     }
 
