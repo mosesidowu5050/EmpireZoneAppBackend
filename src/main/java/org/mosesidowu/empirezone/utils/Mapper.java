@@ -36,7 +36,6 @@ public class Mapper {
 
     public static RegisterUserResponseDTO getRegisterUserResponseDTO(User savedUser) {
         validateUserId(savedUser.getId());
-        validateUserCreatedAt(savedUser.getCreatedAt());
 
         RegisterUserResponseDTO registerUserResponseDTO = new RegisterUserResponseDTO();
         registerUserResponseDTO.setUserId(savedUser.getId());
@@ -44,7 +43,7 @@ public class Mapper {
         registerUserResponseDTO.setEmail(savedUser.getEmail());
         registerUserResponseDTO.setPhoneNumber(savedUser.getPhoneNumber());
         registerUserResponseDTO.setLocation(savedUser.getCountry());
-        registerUserResponseDTO.setCreatedAt(savedUser.getCreatedAt() );
+        registerUserResponseDTO.setCreatedAt(LocalDateTime.now());
         registerUserResponseDTO.setRole(savedUser.getRole().name().toLowerCase());
         registerUserResponseDTO.setMessage("Registered Successfully");
 
@@ -67,7 +66,7 @@ public class Mapper {
 
     private static void validateUserId(String userId) {
         boolean isNotValidId = userId == null;
-        if (!isNotValidId) throw new UserException("Invalid User Id");
+        if (isNotValidId) throw new UserException("Invalid User Id");
     }
 
     private static String validateUserFullName(String fullName) {

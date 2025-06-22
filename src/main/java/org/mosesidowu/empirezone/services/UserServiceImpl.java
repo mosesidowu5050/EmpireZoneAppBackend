@@ -1,6 +1,7 @@
 package org.mosesidowu.empirezone.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mosesidowu.empirezone.data.models.User;
 import org.mosesidowu.empirezone.data.repository.UserRepository;
 import org.mosesidowu.empirezone.dtos.requests.LoginUserRequestDTO;
@@ -28,6 +29,7 @@ import static org.mosesidowu.empirezone.utils.Mapper.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements  UserService {
 
     private final UserRepository userRepository;
@@ -39,15 +41,26 @@ public class UserServiceImpl implements  UserService {
 
     @Override
     public RegisterUserResponseDTO register(RegisterUserRequestDTO userRegisterRequest) {
-        isEmailAndPhoneNumberExist(userRegisterRequest.getEmail(), userRegisterRequest.getPhoneNumber());
+        isEmailExist(userRegisterRequest.getEmail());
+        isPhoneNumberExist(userRegisterRequest.getPhoneNumber());
+
         User user = getUser(userRegisterRequest);
         user.setPassword(passwordEncoder.encode(userRegisterRequest.getPassword()));
         User savedUser = userRepository.save(user);
 
         emailService.sendEmail(
                 user.getEmail(),
-                "Welcome to EmpireAds!",
-                "Thank you for registering. We're excited to have you on board!"
+                "Welcome to EmpireZone!🎉 \n" +
+                        "We're excited to have you on board.",
+                """
+                        You can now explore, post, and manage your own ads with ease\s
+                        Whether you're buying or selling, you've joined a growing community that values simplicity, trust, and opportunity.\s
+                        If you ever need help, we’re just an email away.\s
+                        Let the deals begin!\s
+                        
+                        
+                        Cheers,\s
+                        The EmpireZone Team."""
         );
 
         return getRegisterUserResponseDTO(savedUser);
@@ -62,7 +75,8 @@ public class UserServiceImpl implements  UserService {
             );
 
             User user = userRepository.findUserByEmail(userLoginRequest.getEmail());
-            if (user == null) throw  new EmailDoesntExistException("Invalid email or password");
+            Optional.ofNullable(user)
+                    .orElseThrow(() -> new EmailDoesntExistException("Invalid email or password"));
 
             String token = jwtUtil.generateToken(user.getEmail());
             LoginUserResponseDTO loginUserResponseDTO = new LoginUserResponseDTO();
@@ -78,27 +92,24 @@ public class UserServiceImpl implements  UserService {
 
     }
 
-    private void isEmailAndPhoneNumberExist(String email, String phoneNumber) {
-        Optional<User> emailExist = userRepository.existsByEmail(email);
-        Optional<User> phoneNumberExist = userRepository.existsByPhoneNumber(phoneNumber);
-        if (emailExist.isPresent()) throw new EmailExistException("Email already exist");
+    private void isEmailExist(String email) {
+        boolean emailExist = userRepository.existsByEmail(email);
+        if (emailExist) throw new EmailExistException("Email already exist");
+    }
+
+    private void isPhoneNumberExist(String phoneNumber) {
+        Optional<User> phoneNumberExist = userRepository.findUsersByPhoneNumber(phoneNumber);
         if (phoneNumberExist.isPresent()) throw new PhoneNumberExistException("Phone number already exist");
     }
 
 
-
     @Override
     public RegisterUserResponseDTO getUserById(String userId) {
-//
-//        try {
-//            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, null));
-//            User user = userRepository.findUserByEmail(userId);
-//            if (user == null) throw  new UsernameNotFoundException("Invalid email or password");
-//            String token = jwtUtil.generateToken(user.getEmail());
-//
-//        }
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserException("User not found"));
+        return getRegisterUserResponseDTO(user);
     }
+
 
     @Override
     public List<RegisterUserResponseDTO> getAllUsers() {

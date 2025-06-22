@@ -49,14 +49,14 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token, org.springframework.security.core.userdetails.UserDetails userDetails) {
-        final String phoneNumber = extractUsername(token);
-        return (phoneNumber.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String email = extractUsername(token);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String generateToken(String phoneNumber) {
+    public String generateToken(String email) {
         long expirationTime = 60 * 60 * 1000; // 1 hour
         return Jwts.builder()
-                .setSubject(phoneNumber)
+                .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
